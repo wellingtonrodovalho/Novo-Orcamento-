@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -67,6 +67,15 @@ export default function App() {
   const [isEditingClient, setIsEditingClient] = useState(true);
   const [activeTab, setActiveTab] = useState('Orçamentos');
   const [validityDate, setValidityDate] = useState(format(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'));
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-expand textarea for notes
+  useEffect(() => {
+    if (notesRef.current) {
+      notesRef.current.style.height = 'auto';
+      notesRef.current.style.height = `${notesRef.current.scrollHeight}px`;
+    }
+  }, [notes]);
 
   // New Item Temporary State
   const [newItem, setNewItem] = useState<Omit<BudgetItem, 'id'>>({
@@ -404,12 +413,19 @@ export default function App() {
           <div className="p-8 md:p-10 flex flex-col md:flex-row justify-between gap-10 mt-auto">
             <div className="max-w-md w-full">
               <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 block mb-3">Notas Gerais</label>
-              <textarea 
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600 outline-none focus:ring-1 focus:ring-slate-300 transition-all min-h-[120px] resize-none print:border-none print:p-0 print:bg-white"
-                placeholder="Condições de pagamento..."
-              />
+              <div className="relative">
+                <textarea 
+                  ref={notesRef}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600 outline-none focus:ring-1 focus:ring-slate-300 transition-all min-h-[120px] resize-none print:hidden"
+                  placeholder="Condições de pagamento..."
+                />
+                {/* Print version of notes - always fully expanded */}
+                <div className="hidden print:block text-sm text-slate-600 whitespace-pre-wrap border-none p-0 bg-transparent">
+                  {notes || 'Nenhuma observação adicional.'}
+                </div>
+              </div>
             </div>
 
             <div className="w-full md:w-[320px] flex flex-col gap-3 pt-4">
