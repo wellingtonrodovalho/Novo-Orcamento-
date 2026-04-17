@@ -66,6 +66,7 @@ export default function App() {
   const [notes, setNotes] = useState('Válido por 10 dias. Pagamento em até 3x sem juros.');
   const [isEditingClient, setIsEditingClient] = useState(true);
   const [activeTab, setActiveTab] = useState('Orçamentos');
+  const [validityDate, setValidityDate] = useState(format(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'));
 
   // New Item Temporary State
   const [newItem, setNewItem] = useState<Omit<BudgetItem, 'id'>>({
@@ -86,6 +87,7 @@ export default function App() {
         setNotes(data.notes || '');
         setDiscount(data.discount || 0);
         setTax(data.tax || 0);
+        if (data.validityDate) setValidityDate(data.validityDate);
       } catch (e) {
         console.error('Failed to load budget', e);
       }
@@ -94,7 +96,7 @@ export default function App() {
 
   // Save to localStorage
   const saveBudget = () => {
-    const data = { items, client, notes, discount, tax };
+    const data = { items, client, notes, discount, tax, validityDate };
     localStorage.setItem('orca-expert-last-budget', JSON.stringify(data));
     alert('Orçamento salvo localmente!');
   };
@@ -258,7 +260,18 @@ export default function App() {
                   {isEditingClient ? 'Confirmar' : 'Alterar'}
                 </button>
               </div>
-              <p className="text-[15px] font-semibold text-slate-700">{format(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+              {isEditingClient ? (
+                <input 
+                  type="date" 
+                  value={validityDate}
+                  onChange={(e) => setValidityDate(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 p-2 text-sm rounded-lg focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                />
+              ) : (
+                <p className="text-[15px] font-semibold text-slate-700">
+                  {format(new Date(validityDate + 'T00:00:00'), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                </p>
+              )}
             </div>
           </div>
 
